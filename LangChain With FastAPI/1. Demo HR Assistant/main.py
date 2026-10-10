@@ -19,6 +19,11 @@ def langChainExperienceLanguage():
     """)
 
     chain = prompt | model | StrOutputParser()
+     
+    ## similar to
+    # prompt_value = prompt.invoke({"input": "hello"})
+    # model_value = model.invoke(prompt_value)
+    # parser_value = parser.invoke(model_value)
     return chain
 
 
