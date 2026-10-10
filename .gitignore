@@ -1,1 +1,36 @@
 FASTMCP/
+FASTMCP/
+
+.DS_Store
+.env/
+.vscode/
+
+*.env
+LangChain/env
+
+*/env
+
+udemy*
+
+/.env
+
+**/env/
+//*.pyc
+
+**/pycache/
+
+RAG Projects/company-knowledge-assistant/env/
+LangChain/
+rag/
+Rag Testing/
+Text-To-Sql/
+AI Agent/
+AI agent Text To Sql/
+
+RAG Projects/
+1. Basic/
+2. Prompting/
+3. RAG Projects/
+Tokenizations/
+rag/
+**.pyc
