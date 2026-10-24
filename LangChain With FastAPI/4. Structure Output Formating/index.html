@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Review Analyzer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            resize: vertical;
+            min-height: 120px;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-weight: 600;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+            color: #666;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .result {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .result.active {
+            display: block;
+        }
+
+        .result h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .result p {
+            margin: 8px 0;
+            color: #555;
+        }
+
+        .result .rating {
+            font-size: 24px;
+            font-weight: bold;
+            color: #764ba2;
+        }
+
+        .reviews-list {
+            margin-top: 30px;
+        }
+
+        .review-item {
+            background: #f8f9fa;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            transition: transform 0.2s;
+        }
+
+        .review-item:hover {
+            transform: translateX(5px);
+        }
+
+        .review-item h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .review-item .rating {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .review-item p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .error.active {
+            display: block;
+        }
+
+        .refresh-btn {
+            background: #6c757d;
+            margin-top: 20px;
+        }
+
+        .refresh-btn:hover {
+            background: #5a6268;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎬 Movie Review Analyzer</h1>
+
+        <!-- Submit Review Form -->
+        <div class="card">
+            <h2>Submit a Movie Review</h2>
+            <div class="form-group">
+                <label for="reviewText">Enter your movie review:</label>
+                <textarea id="reviewText" placeholder="e.g., Inception is a mind-bending thriller by Christopher Nolan. 9/10 amazing movie!"></textarea>
+            </div>
+            <button onclick="submitReview()" id="submitBtn">Analyze & Save Review</button>
+
+            <div class="loading" id="loading">
+                ⏳ Analyzing review with AI...
+            </div>
+
+            <div class="error" id="error"></div>
+
+            <div class="result" id="result">
+                <h3>✨ Review Analyzed!</h3>
+                <p><strong>Title:</strong> <span id="resultTitle"></span></p>
+                <p><strong>Review:</strong> <span id="resultReview"></span></p>
+                <p><strong>Rating:</strong> <span class="rating" id="resultRating"></span>/10</p>
+            </div>
+        </div>
+
+        <!-- Reviews List -->
+        <div class="card">
+            <h2>Saved Reviews</h2>
+            <button onclick="loadReviews()" class="refresh-btn">🔄 Refresh List</button>
+            <div class="loading" id="reviewsLoading">
+                ⏳ Loading reviews...
+            </div>
+            <div class="reviews-list" id="reviewsList"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = window.location.origin;
+
+        async function submitReview() {
+            const reviewText = document.getElementById('reviewText').value.trim();
+            const submitBtn = document.getElementById('submitBtn');
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const result = document.getElementById('result');
+
+            if (!reviewText) {
+                error.textContent = 'Please enter a review';
+                error.classList.add('active');
+                return;
+            }
+
+            error.classList.remove('active');
+            result.classList.remove('active');
+            loading.classList.add('active');
+            submitBtn.disabled = true;
+
+            try {
+                const response = await fetch(`${API_URL}/review`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ review_text: reviewText })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to analyze review');
+                }
+
+                const data = await response.json();
+
+                document.getElementById('resultTitle').textContent = data.title;
+                document.getElementById('resultReview').textContent = data.review;
+                document.getElementById('resultRating').textContent = data.rating;
+
+                result.classList.add('active');
+                document.getElementById('reviewText').value = '';
+
+                // Refresh the reviews list
+                loadReviews();
+
+            } catch (err) {
+                error.textContent = 'Error: ' + err.message;
+                error.classList.add('active');
+            } finally {
+                loading.classList.remove('active');
+                submitBtn.disabled = false;
+            }
+        }
+
+        async function loadReviews() {
+            const reviewsList = document.getElementById('reviewsList');
+            const reviewsLoading = document.getElementById('reviewsLoading');
+
+            reviewsLoading.classList.add('active');
+            reviewsList.innerHTML = '';
+
+            try {
+                const response = await fetch(`${API_URL}/reviews`);
+
+                if (!response.ok) {
+                    throw new Error('Failed to load reviews');
+                }
+
+                const reviews = await response.json();
+
+                if (reviews.length === 0) {
+                    reviewsList.innerHTML = '<p style="color: #666; text-align: center;">No reviews yet. Submit one above!</p>';
+                } else {
+                    reviews.forEach(review => {
+                        const reviewItem = document.createElement('div');
+                        reviewItem.className = 'review-item';
+                        reviewItem.innerHTML = `
+                            <h3>${escapeHtml(review.title)}</h3>
+                            <span class="rating">${review.rating}/10</span>
+                            <p>${escapeHtml(review.review)}</p>
+                        `;
+                        reviewsList.appendChild(reviewItem);
+                    });
+                }
+
+            } catch (err) {
+                reviewsList.innerHTML = `<p style="color: #c33;">Error loading reviews: ${err.message}</p>`;
+            } finally {
+                reviewsLoading.classList.remove('active');
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Load reviews on page load
+        window.onload = loadReviews;
+    </script>
+</body>
+</html>
